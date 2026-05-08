@@ -5,6 +5,8 @@
 name: ci
 on:
   push:
+    branches: [main]
+    tags: ['*']
   pull_request:
   schedule:
     # Run once a week on Sundays
@@ -34,6 +36,11 @@ jobs:
           sudo add-apt-repository ppa:wireshark-dev/stable -y
           sudo apt-get update
 
+          if ! apt-cache policy tshark | grep -q 'ppa.launchpadcontent.net'; then
+            echo "::error::Wireshark PPA is not available — tshark would come from the default Ubuntu repo"
+            exit 1
+          fi
+
           # Pre-seed the Wireshark prompt to be non-interactive
           # Set to 'true' if you want non-root users to capture, 'false' otherwise
           echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
@@ -41,7 +48,7 @@ jobs:
           # Install tshark for the integration tests and libpcap-dev for pcap_reader example.
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tshark libpcap-dev
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Install Rust
         uses: dtolnay/rust-toolchain@56f84321dbccf38fb67ce29ab63e4754056677e0
         with:
@@ -63,7 +70,7 @@ jobs:
     runs-on: ${{ vars.RUNS_ON || 'ubuntu-latest' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: REUSE Compliance Check
         uses: fsfe/reuse-action@bb774aa972c2a89ff34781233d275075cbddf542
 
@@ -73,7 +80,7 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
@@ -92,7 +99,7 @@ jobs:
     runs-on: ${{ vars.RUNS_ON || 'ubuntu-latest' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Install Rust
         uses: dtolnay/rust-toolchain@56f84321dbccf38fb67ce29ab63e4754056677e0
         with:
